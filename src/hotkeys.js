@@ -7,11 +7,11 @@
  * License: MIT
  */
 
-(function() {
+const angular = require(`angular`);
+const Mousetrap = require(`mousetrap`);
 
-  'use strict';
-
-  angular.module('cfp.hotkeys', []).provider('hotkeys', function($injector) {
+  hotkeysProvider.$inject = [`$injector`];
+  function hotkeysProvider($injector) {
 
     /**
      * Configurable setting to disable the cheatsheet entirely
@@ -71,7 +71,7 @@
      */
     this.cheatSheetDescription = 'Show / hide this help menu';
 
-    this.$get = function ($rootElement, $rootScope, $compile, $window, $document) {
+    this.$get = function ($rootElement, $rootScope, $compile) {
 
       var mouseTrapEnabled = true;
 
@@ -120,7 +120,7 @@
         for (var i = 0; i < combo.length; i++) {
           // try to resolve command / ctrl based on OS:
           if (combo[i] === 'mod') {
-            if ($window.navigator && $window.navigator.platform.indexOf('Mac') >=0 ) {
+            if (window.navigator && window.navigator.platform.indexOf('Mac') >=0 ) {
               combo[i] = 'command';
             } else {
               combo[i] = 'ctrl';
@@ -260,7 +260,6 @@
 
       // Auto-create a help menu:
       if (this.includeCheatSheet) {
-        var document = $document[0];
         var element = $rootElement[0];
         var helpMenu = angular.element(this.template);
         _add(this.cheatSheetHotkey, this.cheatSheetDescription, toggleCheatSheet);
@@ -589,13 +588,12 @@
       };
 
       return publicApi;
-
     };
+    this.$get.$inject = [`$rootElement`, `$rootScope`, `$compile`];
+  }
 
-
-  })
-
-  .directive('hotkey', function (hotkeys) {
+  hotkeyDirective.$inject = [`hotkeys`];
+  function hotkeyDirective(hotkeys) {
     return {
       restrict: 'A',
       link: function (scope, el, attrs) {
@@ -623,11 +621,17 @@
         });
       }
     };
-  })
+  }
 
-  .run(function(hotkeys) {
+  run.$inject = [`hotkeys`];
+  function run(hotkeys) {
     // force hotkeys to run by injecting it. Without this, hotkeys only runs
     // when a controller or something else asks for it via DI.
-  });
+  }
 
-})();
+const moduleName = 'cfp.hotkeys';
+angular.module(moduleName, [])
+  .provider('hotkeys', hotkeysProvider)
+  .run(run);
+
+module.exports = moduleName;
